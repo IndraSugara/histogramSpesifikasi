@@ -168,20 +168,46 @@ def calculate_image():
         src_n = src_h * src_w
         tgt_n = tgt_h * tgt_w
 
+        if mode == 'color':
+            src_H, src_S, src_V = rgb_to_hsv(src_rgb)
+            tgt_H, tgt_S, tgt_V = rgb_to_hsv(tgt_rgb)
 
-        src_gray = np.array(src_pil.convert('L'), dtype=np.uint8)
-        tgt_gray = np.array(tgt_pil.convert('L'), dtype=np.uint8)
+            src_v8 = np.clip(src_V * 255, 0, 255).astype(np.uint8)
+            tgt_v8 = np.clip(tgt_V * 255, 0, 255).astype(np.uint8)
 
-        src_nk = extract_histogram(src_gray, L)
-        tgt_nk = extract_histogram(tgt_gray, L)
-        pz = [freq / tgt_n for freq in tgt_nk]
+            src_nk = extract_histogram(src_v8, L)
+            tgt_nk = extract_histogram(tgt_v8, L)
+            pz = [freq / tgt_n for freq in tgt_nk]
 
-        result = run_histogram_specification(src_nk, pz, L, src_n)
-        res_gray = apply_mapping(src_gray, result['mapping'])
 
-        chart_b64 = generate_histogram_charts(src_nk, tgt_nk, result['result_histogram'], L, label='Grayscale')
-        comp_b64 = generate_comparison(src_gray, tgt_gray, res_gray, is_color=False)
-        res_img_b64 = numpy_to_base64_gray(res_gray)
+            result = run_histogram_specification(src_nk, pz, L, src_n)
+
+            res_v8 = apply_mapping(src_v8, result['mapping'])
+            res_V = res_v8.astype(np.float64) / 255.0
+
+            res_rgb = hsv_to_rgb(src_H, src_S, res_V)
+
+            chart_b64 = generate_histogram_charts(src_nk, tgt_nk, result['result_histogram'], L, label='V channel')
+            comp_b64 = generate_comparison(src_rgb, tgt_rgb, res_rgb, is_color=True)
+            res_img_b64 = numpy_to_base64_rgb(res_rgb)
+
+            display_src = src_rgb
+            display_tgt = tgt_rgb
+
+        else:
+            src_gray = np.array(src_pil.convert('L'), dtype=np.uint8)
+            tgt_gray = np.array(tgt_pil.convert('L'), dtype=np.uint8)
+
+            src_nk = extract_histogram(src_gray, L)
+            tgt_nk = extract_histogram(tgt_gray, L)
+            pz = [freq / tgt_n for freq in tgt_nk]
+
+            result = run_histogram_specification(src_nk, pz, L, src_n)
+            res_gray = apply_mapping(src_gray, result['mapping'])
+
+            chart_b64 = generate_histogram_charts(src_nk, tgt_nk, result['result_histogram'], L, label='Grayscale')
+            comp_b64 = generate_comparison(src_gray, tgt_gray, res_gray, is_color=False)
+            res_img_b64 = numpy_to_base64_gray(res_gray)
 
         mapping_list = [{'rk': rk, 'zk': result['mapping'][rk]} for rk in range(L)]
 

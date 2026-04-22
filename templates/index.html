@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histogram Specification Calculator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Segoe UI",
+          -apple-system,
+          sans-serif;
+        background: #f5f5f5;
+        color: #333;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+      header {
+        text-align: center;
+        margin-bottom: 28px;
+      }
+      header h1 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 4px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .card h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .mode-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        align-items: center;
+      }
+      .mode-row label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .mode-row select {
+        padding: 8px 12px;
+        border: 1px solid #d0d0d0;
+        border-radius: 4px;
+        font-size: 13px;
+        color: #333;
+        background: #fafafa;
+      }
+      .mode-row select:focus {
+        outline: none;
+        border-color: #5b8dee;
+        background: #fff;
+      }
+
+      .upload-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .upload-box {
+        border: 2px dashed #ccc;
+        border-radius: 6px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .upload-box:hover {
+        border-color: #5b8dee;
+        background: #f8faff;
+      }
+      .upload-box.has-file {
+        border-color: #51cf66;
+        background: #f0fff4;
+      }
+      .upload-box input[type="file"] {
+        display: none;
+      }
+      .upload-box .icon {
+        margin-bottom: 6px;
+      }
+      .upload-box .label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 2px;
+      }
+      .upload-box .hint {
+        font-size: 11px;
+        color: #999;
+      }
+      .upload-box .fname {
+        font-size: 12px;
+        color: #51cf66;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .upload-box .preview {
+        max-width: 180px;
+        max-height: 120px;
+        margin-top: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 10px 28px;
+        background: #5b8dee;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .btn:hover {
+        background: #4a7de0;
+      }
+      .btn:disabled {
+        background: #bbb;
+        cursor: not-allowed;
+      }
+      .btn-row {
+        text-align: center;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      table th {
+        background: #f0f0f0;
+        font-weight: 600;
+        text-align: center;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+        color: #555;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      table td {
+        text-align: center;
+        padding: 7px 10px;
+        border: 1px solid #e5e5e5;
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 12px;
+      }
+      table tr:nth-child(even) td {
+        background: #fafafa;
+      }
+
+      .mapping-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .mapping-item {
+        background: #f0f4ff;
+        border: 1px solid #d0dbf0;
+        border-radius: 4px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-family: "Consolas", monospace;
+        color: #3a5ba0;
+        font-weight: 500;
+      }
+      .mapping-item .arrow {
+        color: #999;
+        margin: 0 2px;
+      }
+      .note {
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 10px;
+      }
+
+      .chart-container {
+        text-align: center;
+      }
+      .chart-container img {
+        max-width: 100%;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+      }
+
+      #results {
+        display: none;
+      }
+      .error-msg {
+        background: #fff0f0;
+        border: 1px solid #f5c6cb;
+        color: #c0392b;
+        padding: 10px 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 16px;
+        display: none;
+      }
+      .step-label {
+        display: inline-block;
+        background: #e8ecf1;
+        color: #555;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 3px;
+        margin-right: 6px;
+      }
+
+      .info-bar {
+        font-size: 12px;
+        color: #666;
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+      }
+      .info-bar span {
+        font-weight: 600;
+        color: #444;
+      }
+
+      .btn-download {
+        display: inline-block;
+        padding: 8px 18px;
+        background: #51cf66;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        margin-top: 10px;
+      }
+      .btn-download:hover {
+        background: #40c057;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Histogram Specification</h1>
+      </header>
+
+      <div class="card">
+        <h2>Upload Citra</h2>
+
+        <div class="mode-row">
+          <label>Mode:</label>
+          <select id="modeSelect">
+            <option value="grayscale">Grayscale</option>
+            <option value="color">Berwarna (RGB via HSV)</option>
+          </select>
+        </div>
+
+        <div class="upload-grid">
+          <div
+            class="upload-box"
+            id="srcBox"
+            onclick="document.getElementById('srcFile').click()"
+          >
+            <input
+              type="file"
+              id="srcFile"
+              accept="image/*"
+              onchange="onFile(this, 'src')"
+            />
+            <div class="icon">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#5B8DEE"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </div>
+            <div class="label">Citra Sumber</div>
+            <div class="hint">Gambar yang akan ditransformasi</div>
+            <div class="fname" id="srcFname"></div>
+            <img class="preview" id="srcPreview" style="display: none" />
+          </div>
+          <div
+            class="upload-box"
+            id="tgtBox"
+            onclick="document.getElementById('tgtFile').click()"
+          >
+            <input
+              type="file"
+              id="tgtFile"
+              accept="image/*"
+              onchange="onFile(this, 'tgt')"
+            />
+            <div class="icon">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#FF6B6B"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            </div>
+            <div class="label">Citra Target</div>
+            <div class="hint">Gambar referensi distribusi yang diinginkan</div>
+            <div class="fname" id="tgtFname"></div>
+            <img class="preview" id="tgtPreview" style="display: none" />
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="btnGo" onclick="run()">
+            Proses Histogram Specification
+          </button>
+        </div>
+      </div>
+
+      <div id="errorBox" class="error-msg"></div>
+
+      <div id="results">
+        <!-- Image comparison -->
+        <div class="card">
+          <h2>Perbandingan Citra</h2>
+          <div class="info-bar" id="infoBar"></div>
+          <div class="chart-container">
+            <img id="compImg" alt="Perbandingan Citra" />
+          </div>
+          <div style="text-align: center">
+            <a
+              class="btn-download"
+              id="dlBtn"
+              download="hasil_histogram_spec.png"
+              ><svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                style="vertical-align: -2px; margin-right: 4px"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" /></svg
+              >Download Citra Hasil</a
+            >
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>
+            <span class="step-label">Visualisasi</span> Histogram Sumber,
+            Target, dan Hasil
+          </h2>
+          <div class="chart-container">
+            <img id="chartImg" alt="Histogram Charts" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function onFile(input, prefix) {
+        const f = input.files[0];
+        if (!f) return;
+        document.getElementById(prefix + "Fname").textContent = f.name;
+        document.getElementById(prefix + "Box").classList.add("has-file");
+        const prev = document.getElementById(prefix + "Preview");
+        const r = new FileReader();
+        r.onload = (e) => {
+          prev.src = e.target.result;
+          prev.style.display = "block";
+        };
+        r.readAsDataURL(f);
+      }
+
+      function showError(msg) {
+        const el = document.getElementById("errorBox");
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+
+      async function run() {
+        const btn = document.getElementById("btnGo");
+        const errBox = document.getElementById("errorBox");
+        const results = document.getElementById("results");
+
+        const srcF = document.getElementById("srcFile").files[0];
+        const tgtF = document.getElementById("tgtFile").files[0];
+        if (!srcF) {
+          showError("Upload citra sumber terlebih dahulu.");
+          return;
+        }
+        if (!tgtF) {
+          showError("Upload citra target terlebih dahulu.");
+          return;
+        }
+
+        const mode = document.getElementById("modeSelect").value;
+
+        errBox.style.display = "none";
+        results.style.display = "none";
+        btn.disabled = true;
+        btn.textContent = "Memproses...";
+
+        try {
+          const fd = new FormData();
+          fd.append("source_image", srcF);
+          fd.append("target_image", tgtF);
+          fd.append("mode", mode);
+
+          const resp = await fetch("/calculate_image", {
+            method: "POST",
+            body: fd,
+          });
+          const data = await resp.json();
+          if (!resp.ok) {
+            showError(data.error || "Error server.");
+            return;
+          }
+
+          render(data);
+          results.style.display = "block";
+          results.scrollIntoView({ behavior: "smooth" });
+        } catch (e) {
+          showError("Gagal menghubungi server: " + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Proses Histogram Specification";
+        }
+      }
+
+      function render(d) {
+        const L = d.L;
+        const modeLabel =
+          d.mode === "color" ? "Berwarna (V channel)" : "Grayscale";
+
+        document.getElementById("compImg").src =
+          "data:image/png;base64," + d.comparison;
+        document.getElementById("infoBar").innerHTML =
+          `Mode: <span>${modeLabel}</span> &nbsp;|&nbsp; Sumber: <span>${d.src_size.w}×${d.src_size.h}</span> (${d.src_n.toLocaleString()} px) &nbsp;|&nbsp; Target: <span>${d.tgt_size.w}×${d.tgt_size.h}</span> (${d.tgt_n.toLocaleString()} px) &nbsp;|&nbsp; L = <span>${L}</span>`;
+        document.getElementById("dlBtn").href =
+          "data:image/png;base64," + d.result_image;
+
+        document.getElementById("chartImg").src =
+          "data:image/png;base64," + d.chart;
+      }
+    </script>
+  </body>
+</html>
